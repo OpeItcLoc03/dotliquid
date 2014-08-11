@@ -53,24 +53,24 @@ namespace DotLiquid.Tags
 	/// </summary>
 	public class For : DotLiquid.Block
 	{
-		private static readonly Regex Syntax = R.B(R.Q(@"(\w+)\s+in\s+({0}+)\s*(reversed)?"), Liquid.QuotedFragment);
+		protected static readonly Regex Syntax = R.B(R.Q(@"(\w+)\s+in\s+({0}+)\s*(reversed)?"), Liquid.QuotedFragment);
 
-		private string _variableName, _collectionName, _name;
-		private bool _reversed;
-		private Dictionary<string, string> _attributes;
+		protected string variableName, collectionName, name;
+		protected bool reversed;
+		protected Dictionary<string, string> attributes;
 
 		public override void Initialize(string tagName, string markup, List<string> tokens)
 		{
 			Match match = Syntax.Match(markup);
 			if (match.Success)
 			{
-				_variableName = match.Groups[1].Value;
-				_collectionName = match.Groups[2].Value;
-				_name = string.Format("{0}-{1}", _variableName, _collectionName);
-				_reversed = (!string.IsNullOrEmpty(match.Groups[3].Value));
-				_attributes = new Dictionary<string, string>(Template.NamingConvention.StringComparer);
+				variableName = match.Groups[1].Value;
+				collectionName = match.Groups[2].Value;
+				name = string.Format("{0}-{1}", variableName, collectionName);
+				reversed = (!string.IsNullOrEmpty(match.Groups[3].Value));
+				attributes = new Dictionary<string, string>(Template.NamingConvention.StringComparer);
 				R.Scan(markup, Liquid.TagAttributes,
-					(key, value) => _attributes[key] = value);
+					(key, value) => attributes[key] = value);
 			}
 			else
 			{
@@ -84,18 +84,18 @@ namespace DotLiquid.Tags
 		{
 			context.Registers["for"] = context.Registers["for"] ?? new Hash(0);
 
-			object collection = context[_collectionName];
+			object collection = context[collectionName];
 
 			if (!(collection is IEnumerable))
 				return;
 
-			int from = (_attributes.ContainsKey("offset"))
-				? (_attributes["offset"] == "continue")
-					? Convert.ToInt32(context.Registers.Get<Hash>("for")[_name])
-					: Convert.ToInt32(context[_attributes["offset"]])
+			int from = (attributes.ContainsKey("offset"))
+				? (attributes["offset"] == "continue")
+					? Convert.ToInt32(context.Registers.Get<Hash>("for")[name])
+					: Convert.ToInt32(context[attributes["offset"]])
 				: 0;
 
-			int? limit = _attributes.ContainsKey("limit") ? context[_attributes["limit"]] as int? : null;
+			int? limit = attributes.ContainsKey("limit") ? context[attributes["limit"]] as int? : null;
 			int? to = (limit != null) ? (int?) (limit.Value + from) : null;
 
 			List<object> segment = SliceCollectionUsingEach((IEnumerable) collection, from, to);
@@ -103,20 +103,20 @@ namespace DotLiquid.Tags
 			if (!segment.Any())
 				return;
 
-			if (_reversed)
+			if (reversed)
 				segment.Reverse();
 
 			int length = segment.Count;
 
 			// Store our progress through the collection for the continue flag
-			context.Registers.Get<Hash>("for")[_name] = from + length;
+			context.Registers.Get<Hash>("for")[name] = from + length;
 
 			context.Stack(() => segment.EachWithIndex((item, index) =>
 			{
-				context[_variableName] = item;
+				context[variableName] = item;
 				context["forloop"] = Hash.FromAnonymousObject(new
 				{
-					name = _name,
+					name = name,
 					length = length,
 					index = index + 1,
 					index0 = index,
