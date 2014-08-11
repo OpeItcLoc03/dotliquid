@@ -1,0 +1,44 @@
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+
+version: "{build}"
+
+branches:
+  only:
+    - master
+
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+install:
+  - cmd: git submodule -q update --init
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+configuration: Release
+
+build:
+  project: src/DotLiquid.sln
+  publish_nuget: true
+  verbosity: minimal
+
+before_build:
+  - cmd: nuget restore src/DotLiquid.sln
+  - ps: .\tools\appveyor\scripts\update-build-version.ps
+
+#---------------------------------#
+#     deployment configuration    #
+#---------------------------------#
+
+deploy:
+  - provider: Environment
+    name: myget
+    on:
+      release_tag: true
+
+before_deploy:
+  - ps: .\tools\appveyor\scripts\declare-release-tag.ps1
