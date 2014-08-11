@@ -1,0 +1,54 @@
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+
+version: "{build}"
+
+branches:
+  only:
+    - master
+
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+install:
+  - cmd: git submodule -q update --init
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+configuration: Release
+
+build:
+  project: src/DotLiquid.sln
+  publish_nuget: true
+  verbosity: minimal
+
+before_build:
+  - cmd: nuget restore src/DotLiquid.sln
+  - ps: .\tools\appveyor\scripts\update-build-version.ps1
+
+#---------------------------------#
+#     deployment configuration    #
+#---------------------------------#
+
+deploy:
+  - provider: Environment
+    name: myget
+    on:
+      release_tag: true
+
+before_deploy:
+  - ps: .\tools\appveyor\scripts\declare-release-tag.ps1
+
+#---------------------------------#
+#         notifications           #
+#---------------------------------#
+
+notifications:
+  - provider: HipChat
+    auth_token:
+      secure: mdnRk4amuE4pT+1FcC9VTu8J2nGl0ZQJk1435t7KPXs=
+    room: Portal
