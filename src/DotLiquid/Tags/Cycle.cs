@@ -22,27 +22,27 @@ namespace DotLiquid.Tags
 	/// </summary>
 	public class Cycle : Tag
 	{
-		private static readonly Regex SimpleSyntax = R.B(R.Q(@"^{0}+"), Liquid.QuotedFragment);
-		private static readonly Regex NamedSyntax = R.B(R.Q(@"^({0})\s*\:\s*(.*)"), Liquid.QuotedFragment);
+		protected static readonly Regex SimpleSyntax = R.B(R.Q(@"^{0}+"), Liquid.QuotedFragment);
+		protected static readonly Regex NamedSyntax = R.B(R.Q(@"^({0})\s*\:\s*(.*)"), Liquid.QuotedFragment);
 
-		private string[] _variables;
-		private string _name;
+		protected string[] variables;
+		protected string name;
 
 		public override void Initialize(string tagName, string markup, List<string> tokens)
 		{
 			Match match = NamedSyntax.Match(markup);
 			if (match.Success)
 			{
-				_variables = VariablesFromString(match.Groups[2].Value);
-				_name = match.Groups[1].Value;
+				variables = VariablesFromString(match.Groups[2].Value);
+				name = match.Groups[1].Value;
 			}
 			else
 			{
 				match = SimpleSyntax.Match(markup);
 				if (match.Success)
 				{
-					_variables = VariablesFromString(markup);
-					_name = "'" + string.Join(string.Empty, _variables) + "'";
+					variables = VariablesFromString(markup);
+					name = "'" + string.Join(string.Empty, variables) + "'";
 				}
 				else
 				{
@@ -70,11 +70,11 @@ namespace DotLiquid.Tags
 
 			context.Stack(() =>
 			{
-				string key = context[_name].ToString();
+				string key = context[name].ToString();
 				int iteration = (int) (((Hash) context.Registers["cycle"])[key] ?? 0);
-				result.Write(context[_variables[iteration]].ToString());
+				result.Write(context[variables[iteration]].ToString());
 				++iteration;
-				if (iteration >= _variables.Length)
+				if (iteration >= variables.Length)
 					iteration = 0;
 				((Hash) context.Registers["cycle"])[key] = iteration;
 			});
