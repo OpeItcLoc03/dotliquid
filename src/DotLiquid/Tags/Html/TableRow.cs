@@ -12,20 +12,20 @@ namespace DotLiquid.Tags.Html
 {
 	public class TableRow : DotLiquid.Block
 	{
-		private static readonly Regex Syntax = R.B(R.Q(@"(\w+)\s+in\s+({0}+)"), Liquid.VariableSignature);
+		protected static readonly Regex Syntax = R.B(R.Q(@"(\w+)\s+in\s+({0}+)"), Liquid.VariableSignature);
 
-		private string _variableName, _collectionName;
-		private Dictionary<string, string> _attributes;
+		protected string variableName, collectionName;
+		protected Dictionary<string, string> attributes;
 
 		public override void Initialize(string tagName, string markup, List<string> tokens)
 		{
 			Match syntaxMatch = Syntax.Match(markup);
 			if (syntaxMatch.Success)
 			{
-				_variableName = syntaxMatch.Groups[1].Value;
-				_collectionName = syntaxMatch.Groups[2].Value;
-				_attributes = new Dictionary<string, string>(Template.NamingConvention.StringComparer);
-				R.Scan(markup, Liquid.TagAttributes, (key, value) => _attributes[key] = value);
+				variableName = syntaxMatch.Groups[1].Value;
+				collectionName = syntaxMatch.Groups[2].Value;
+				attributes = new Dictionary<string, string>(Template.NamingConvention.StringComparer);
+				R.Scan(markup, Liquid.TagAttributes, (key, value) => attributes[key] = value);
 			}
 			else
 				throw new SyntaxException(Liquid.ResourceManager.GetString("TableRowTagSyntaxException"));
@@ -35,28 +35,28 @@ namespace DotLiquid.Tags.Html
 
 		public override void Render(Context context, TextWriter result)
 		{
-			object coll = context[_collectionName];
+			object coll = context[collectionName];
 
 			if (!(coll is IEnumerable))
 				return;
 			IEnumerable<object> collection = ((IEnumerable) coll).Cast<object>();
 
-			if (_attributes.ContainsKey("offset"))
+			if (attributes.ContainsKey("offset"))
 			{
-				int offset = Convert.ToInt32(_attributes["offset"]);
+				int offset = Convert.ToInt32(attributes["offset"]);
 				collection = collection.Skip(offset);
 			}
 
-			if (_attributes.ContainsKey("limit"))
+			if (attributes.ContainsKey("limit"))
 			{
-				int limit = Convert.ToInt32(_attributes["limit"]);
+				int limit = Convert.ToInt32(attributes["limit"]);
 				collection = collection.Take(limit);
 			}
 
 			collection = collection.ToList();
 			int length = collection.Count();
 
-			int cols = Convert.ToInt32(context[_attributes["cols"]]);
+			int cols = Convert.ToInt32(context[attributes["cols"]]);
 
 			int row = 1;
 			int col = 0;
@@ -64,7 +64,7 @@ namespace DotLiquid.Tags.Html
 			result.WriteLine("<tr class=\"row1\">");
 			context.Stack(() => collection.EachWithIndex((item, index) =>
 			{
-				context[_variableName] = item;
+				context[variableName] = item;
 				context["tablerowloop"] = Hash.FromAnonymousObject(new
 				{
 					length = length,
