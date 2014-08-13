@@ -20,16 +20,16 @@ namespace DotLiquid.Tags
 	{
 		protected static readonly Regex Syntax = R.B(R.Q(@"({0}+)\s*=\s*(.*)\s*"), Liquid.VariableSignature);
 
-		protected string to;
-		protected Variable from;
+		protected string To;
+		protected Variable From;
 
 		public override void Initialize(string tagName, string markup, List<string> tokens)
 		{
 			Match syntaxMatch = Syntax.Match(markup);
 			if (syntaxMatch.Success)
 			{
-				to = syntaxMatch.Groups[1].Value;
-				from = new Variable(syntaxMatch.Groups[2].Value);
+				To = syntaxMatch.Groups[1].Value;
+				From = new Variable(syntaxMatch.Groups[2].Value);
 			}
 			else
 			{
@@ -41,7 +41,7 @@ namespace DotLiquid.Tags
 
 		public override void Render(Context context, TextWriter result)
 		{
-			context.Scopes.Last()[to] = from.Render(context);
+			context.Scopes.Last()[To] = From.Render(context);
 		}
 	}
 }

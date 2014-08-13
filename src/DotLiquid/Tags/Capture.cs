@@ -23,13 +23,13 @@ namespace DotLiquid.Tags
 	{
 		protected static readonly Regex Syntax = new Regex(@"(\w+)");
 
-		protected string to;
+		protected string To;
 
 		public override void Initialize(string tagName, string markup, List<string> tokens)
 		{
 			Match syntaxMatch = Syntax.Match(markup);
 			if (syntaxMatch.Success)
-				to = syntaxMatch.Groups[1].Value;
+				To = syntaxMatch.Groups[1].Value;
 			else
 				throw new SyntaxException(Liquid.ResourceManager.GetString("CapureTagSyntaxException"));
 
@@ -41,7 +41,7 @@ namespace DotLiquid.Tags
 			using (TextWriter temp = new StringWriter())
 			{
 				base.Render(context, temp);
-				context.Scopes.Last()[to] = temp.ToString();
+				context.Scopes.Last()[To] = temp.ToString();
 			}
 		}
 	}

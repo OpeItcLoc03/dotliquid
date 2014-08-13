@@ -60,7 +60,7 @@ namespace DotLiquid.Tags
 	{
 		protected static readonly Regex Syntax = new Regex(string.Format(@"^({0})", Liquid.QuotedFragment));
 
-		protected string templateName;
+		protected string TemplateName;
 
 		public override void Initialize(string tagName, string markup, List<string> tokens)
 		{
@@ -68,7 +68,7 @@ namespace DotLiquid.Tags
 
 			if (syntaxMatch.Success)
 			{
-				templateName = syntaxMatch.Groups[1].Value;
+				TemplateName = syntaxMatch.Groups[1].Value;
 			}
 			else
 				throw new SyntaxException(Liquid.ResourceManager.GetString("ExtendsTagSyntaxException"));
@@ -103,7 +103,7 @@ namespace DotLiquid.Tags
 		{
             // Get the template or template content and then either copy it (since it will be modified) or parse it
 		    IFileSystem fileSystem = context.Registers["file_system"] as IFileSystem ?? context.Configuration.FileSystem;
-            object file = fileSystem.ReadTemplateFile(context, templateName);
+            object file = fileSystem.ReadTemplateFile(context, TemplateName);
 		    Template template = file as Template;
 		    template = template ?? Template.Parse(file == null ? null : file.ToString(), context.Configuration);
 
