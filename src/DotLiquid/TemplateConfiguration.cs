@@ -142,6 +142,8 @@ namespace DotLiquid
             RegisterTag<Tags.Cycle>("cycle");
             RegisterTag<Tags.Extends>("extends");
             RegisterTag<Tags.For>("for");
+            RegisterTag<Tags.Break>("break");
+            RegisterTag<Tags.Continue>("continue");
             RegisterTag<Tags.If>("if");
             RegisterTag<Tags.IfChanged>("ifchanged");
             RegisterTag<Tags.Include>("include");
