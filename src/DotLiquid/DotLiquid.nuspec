@@ -12,7 +12,7 @@
     <projectUrl>http://dotliquidmarkup.org</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <tags>template templating language Liquid markup .net35 .net40 .net45</tags>
-    <releaseNotes>Allow overriding the ResourceManager used for error messages</releaseNotes>
+    <releaseNotes>Improve handling of Aggregate Exceptions</releaseNotes>
   </metadata>
   <files>
 	<file src="bin\Release\DotLiquid.dll" target="lib\NET45" />
