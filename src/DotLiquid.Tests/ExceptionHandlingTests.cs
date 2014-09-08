@@ -1,5 +1,8 @@
+using System;
+using System.IO;
 using DotLiquid.Exceptions;
 using NUnit.Framework;
+using ArgumentException = DotLiquid.Exceptions.ArgumentException;
 
 namespace DotLiquid.Tests
 {
@@ -23,6 +26,18 @@ namespace DotLiquid.Tests
 		        throw new InterruptException("interrupted");
 		    }
 		}
+
+	    private class AggregateExceptionTag : Tag
+	    {
+	        public override void Render(Context context, TextWriter result)
+	        {
+                throw new AggregateException("One or more errors.", new[]
+		        {
+		            new Exception("first error"),
+                    new Exception("second error")
+		        });
+	        }
+	    }
 
 		[Test]
 		public void TestSyntaxException()
@@ -74,6 +89,15 @@ namespace DotLiquid.Tests
 	        var exception = Assert.Throws<InterruptException>(() => template.Render(localVariables));
 
             Assert.AreEqual("interrupted", exception.Message);
+	    }
+
+	    [Test]
+	    public void TestAggregateException()
+	    {
+	        Template template = null;
+	        var config = new TemplateConfiguration().RegisterTag<AggregateExceptionTag>("aggregate_exception");
+	        Assert.DoesNotThrow(() => { template = Template.Parse(" {% aggregate_exception %} ", config); });
+            Assert.AreEqual(" Liquid error: first error Liquid error: second error ", template.Render());
 	    }
 	}
 }

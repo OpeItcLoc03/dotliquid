@@ -76,7 +76,15 @@ namespace DotLiquid
 
 			if (ex is SyntaxException)
 				return string.Format(Liquid.ResourceManager.GetString("ContextLiquidSyntaxError"), ex.Message);
-			return string.Format(Liquid.ResourceManager.GetString("ContextLiquidError"), ex.Message);
+
+            var messageFormat = Liquid.ResourceManager.GetString("ContextLiquidError");
+            var aggregateException = ex as AggregateException;
+            if (aggregateException != null)
+		    {
+		        return string.Join(" ", aggregateException.Flatten().InnerExceptions.Select(exception =>
+		            string.Format(messageFormat, exception.Message)));
+		    }
+		    return string.Format(messageFormat, ex.Message);
 		}
 
 		public object Invoke(string method, List<object> args)
