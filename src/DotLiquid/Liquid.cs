@@ -5,7 +5,7 @@ namespace DotLiquid
 {
 	public static class Liquid
 	{
-		internal static readonly ResourceManager ResourceManager = new ResourceManager(typeof(DotLiquid.Properties.Resources));
+		public static ResourceManager ResourceManager = new ResourceManager(typeof(DotLiquid.Properties.Resources));
 
 		public static readonly string FilterSeparator = R.Q(@"\|");
 		public static readonly string ArgumentSeparator = R.Q(@",");
