@@ -117,7 +117,7 @@ namespace DotLiquid
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		internal object Render(Context context)
+		public object Render(Context context)
 		{
 			return RenderInternal(context);
 		}
