@@ -45,7 +45,7 @@ namespace DotLiquid.Tags
 			Template partial = Template.Parse(source, context.Configuration);
 
 			string shortenedTemplateName = TemplateName.Substring(1, TemplateName.Length - 2);
-			object variable = context[VariableName ?? shortenedTemplateName];
+			object variable = context[VariableName];
 
 			context.Stack(() =>
 			{
@@ -62,8 +62,8 @@ namespace DotLiquid.Tags
 					return;
 				}
 
-				context[shortenedTemplateName] = variable;
-				partial.Render(result, RenderParameters.FromContext(context));
+                if (variable != null) context[shortenedTemplateName] = variable;
+                partial.Render(result, RenderParameters.FromContext(context));
 			});
 		}
 	}
