@@ -5,198 +5,200 @@ using NUnit.Framework;
 
 namespace DotLiquid.Tests
 {
-	[TestFixture]
-	public class TemplateTests
-	{
-		[Test]
-		public void TestTokenizeStrings()
-		{
-			CollectionAssert.AreEqual(new[] { " " }, Template.Tokenize(" "));
-			CollectionAssert.AreEqual(new[] { "hello world" }, Template.Tokenize("hello world"));
-		}
+    using System;
 
-		[Test]
-		public void TestTokenizeVariables()
-		{
-			CollectionAssert.AreEqual(new[] { "{{funk}}" }, Template.Tokenize("{{funk}}"));
-			CollectionAssert.AreEqual(new[] { " ", "{{funk}}", " " }, Template.Tokenize(" {{funk}} "));
-			CollectionAssert.AreEqual(new[] { " ", "{{funk}}", " ", "{{so}}", " ", "{{brother}}", " " }, Template.Tokenize(" {{funk}} {{so}} {{brother}} "));
-			CollectionAssert.AreEqual(new[] { " ", "{{  funk  }}", " " }, Template.Tokenize(" {{  funk  }} "));
-		}
+    [TestFixture]
+    public class TemplateTests
+    {
+        [Test]
+        public void TestTokenizeStrings()
+        {
+            CollectionAssert.AreEqual(new[] { " " }, Template.Tokenize(" "));
+            CollectionAssert.AreEqual(new[] { "hello world" }, Template.Tokenize("hello world"));
+        }
 
-		[Test]
-		public void TestTokenizeBlocks()
-		{
-			CollectionAssert.AreEqual(new[] { "{%comment%}" }, Template.Tokenize("{%comment%}"));
-			CollectionAssert.AreEqual(new[] { " ", "{%comment%}", " " }, Template.Tokenize(" {%comment%} "));
+        [Test]
+        public void TestTokenizeVariables()
+        {
+            CollectionAssert.AreEqual(new[] { "{{funk}}" }, Template.Tokenize("{{funk}}"));
+            CollectionAssert.AreEqual(new[] { " ", "{{funk}}", " " }, Template.Tokenize(" {{funk}} "));
+            CollectionAssert.AreEqual(new[] { " ", "{{funk}}", " ", "{{so}}", " ", "{{brother}}", " " }, Template.Tokenize(" {{funk}} {{so}} {{brother}} "));
+            CollectionAssert.AreEqual(new[] { " ", "{{  funk  }}", " " }, Template.Tokenize(" {{  funk  }} "));
+        }
 
-			CollectionAssert.AreEqual(new[] { " ", "{%comment%}", " ", "{%endcomment%}", " " }, Template.Tokenize(" {%comment%} {%endcomment%} "));
-			CollectionAssert.AreEqual(new[] { "  ", "{% comment %}", " ", "{% endcomment %}", " " }, Template.Tokenize("  {% comment %} {% endcomment %} "));
-		}
+        [Test]
+        public void TestTokenizeBlocks()
+        {
+            CollectionAssert.AreEqual(new[] { "{%comment%}" }, Template.Tokenize("{%comment%}"));
+            CollectionAssert.AreEqual(new[] { " ", "{%comment%}", " " }, Template.Tokenize(" {%comment%} "));
 
-		[Test]
-		public void TestInstanceAssignsPersistOnSameTemplateObjectBetweenParses()
-		{
-			Template t = new Template();
-			Assert.AreEqual("from instance assigns", t.ParseInternal("{% assign foo = 'from instance assigns' %}{{ foo }}").Render());
-			Assert.AreEqual("from instance assigns", t.ParseInternal("{{ foo }}").Render());
-		}
+            CollectionAssert.AreEqual(new[] { " ", "{%comment%}", " ", "{%endcomment%}", " " }, Template.Tokenize(" {%comment%} {%endcomment%} "));
+            CollectionAssert.AreEqual(new[] { "  ", "{% comment %}", " ", "{% endcomment %}", " " }, Template.Tokenize("  {% comment %} {% endcomment %} "));
+        }
 
-		[Test]
-		public void TestInstanceAssignsPersistOnSameTemplateParsingBetweenRenders()
-		{
-			Template t = Template.Parse("{{ foo }}{% assign foo = 'foo' %}{{ foo }}");
-			Assert.AreEqual("foo", t.Render());
-			Assert.AreEqual("foofoo", t.Render());
-		}
+        [Test]
+        public void TestInstanceAssignsPersistOnSameTemplateObjectBetweenParses()
+        {
+            Template t = new Template();
+            Assert.AreEqual("from instance assigns", t.ParseInternal("{% assign foo = 'from instance assigns' %}{{ foo }}").Render());
+            Assert.AreEqual("from instance assigns", t.ParseInternal("{{ foo }}").Render());
+        }
 
-		[Test]
-		public void TestCustomAssignsDoNotPersistOnSameTemplate()
-		{
-			Template t = new Template();
-			Assert.AreEqual("from custom assigns", t.ParseInternal("{{ foo }}").Render(Hash.FromAnonymousObject(new { foo = "from custom assigns" })));
-			Assert.AreEqual("", t.ParseInternal("{{ foo }}").Render());
-		}
+        [Test]
+        public void TestInstanceAssignsPersistOnSameTemplateParsingBetweenRenders()
+        {
+            Template t = Template.Parse("{{ foo }}{% assign foo = 'foo' %}{{ foo }}");
+            Assert.AreEqual("foo", t.Render());
+            Assert.AreEqual("foofoo", t.Render());
+        }
 
-		[Test]
-		public void TestCustomAssignsSquashInstanceAssigns()
-		{
-			Template t = new Template();
-			Assert.AreEqual("from instance assigns", t.ParseInternal("{% assign foo = 'from instance assigns' %}{{ foo }}").Render());
-			Assert.AreEqual("from custom assigns", t.ParseInternal("{{ foo }}").Render(Hash.FromAnonymousObject(new { foo = "from custom assigns" })));
-		}
+        [Test]
+        public void TestCustomAssignsDoNotPersistOnSameTemplate()
+        {
+            Template t = new Template();
+            Assert.AreEqual("from custom assigns", t.ParseInternal("{{ foo }}").Render(Hash.FromAnonymousObject(new { foo = "from custom assigns" })));
+            Assert.AreEqual("", t.ParseInternal("{{ foo }}").Render());
+        }
 
-		[Test]
-		public void TestPersistentAssignsSquashInstanceAssigns()
-		{
-			Template t = new Template();
-			Assert.AreEqual("from instance assigns",
-				t.ParseInternal("{% assign foo = 'from instance assigns' %}{{ foo }}").Render());
-			t.Assigns["foo"] = "from persistent assigns";
-			Assert.AreEqual("from persistent assigns", t.ParseInternal("{{ foo }}").Render());
-		}
+        [Test]
+        public void TestCustomAssignsSquashInstanceAssigns()
+        {
+            Template t = new Template();
+            Assert.AreEqual("from instance assigns", t.ParseInternal("{% assign foo = 'from instance assigns' %}{{ foo }}").Render());
+            Assert.AreEqual("from custom assigns", t.ParseInternal("{{ foo }}").Render(Hash.FromAnonymousObject(new { foo = "from custom assigns" })));
+        }
 
-		[Test]
-		public void TestLambdaIsCalledOnceFromPersistentAssignsOverMultipleParsesAndRenders()
-		{
-			Template t = new Template();
-			int global = 0;
-			t.Assigns["number"] = (Proc) (c => ++global);
-			Assert.AreEqual("1", t.ParseInternal("{{number}}").Render());
-			Assert.AreEqual("1", t.ParseInternal("{{number}}").Render());
-			Assert.AreEqual("1", t.Render());
-		}
+        [Test]
+        public void TestPersistentAssignsSquashInstanceAssigns()
+        {
+            Template t = new Template();
+            Assert.AreEqual("from instance assigns",
+                t.ParseInternal("{% assign foo = 'from instance assigns' %}{{ foo }}").Render());
+            t.Assigns["foo"] = "from persistent assigns";
+            Assert.AreEqual("from persistent assigns", t.ParseInternal("{{ foo }}").Render());
+        }
 
-		[Test]
-		public void TestLambdaIsCalledOnceFromCustomAssignsOverMultipleParsesAndRenders()
-		{
-			Template t = new Template();
-			int global = 0;
-			Hash assigns = Hash.FromAnonymousObject(new { number = (Proc) (c => ++global) });
-			Assert.AreEqual("1", t.ParseInternal("{{number}}").Render(assigns));
-			Assert.AreEqual("1", t.ParseInternal("{{number}}").Render(assigns));
-			Assert.AreEqual("1", t.Render(assigns));
-		}
+        [Test]
+        public void TestLambdaIsCalledOnceFromPersistentAssignsOverMultipleParsesAndRenders()
+        {
+            Template t = new Template();
+            int global = 0;
+            t.Assigns["number"] = (Proc)(c => ++global);
+            Assert.AreEqual("1", t.ParseInternal("{{number}}").Render());
+            Assert.AreEqual("1", t.ParseInternal("{{number}}").Render());
+            Assert.AreEqual("1", t.Render());
+        }
 
-		[Test]
-		public void TestErbLikeTrimmingLeadingWhitespace()
-		{
-			Template t = Template.Parse("foo\n\t  {%- if true %}hi tobi{% endif %}");
-			Assert.AreEqual("foo\nhi tobi", t.Render());
-		}
+        [Test]
+        public void TestLambdaIsCalledOnceFromCustomAssignsOverMultipleParsesAndRenders()
+        {
+            Template t = new Template();
+            int global = 0;
+            Hash assigns = Hash.FromAnonymousObject(new { number = (Proc)(c => ++global) });
+            Assert.AreEqual("1", t.ParseInternal("{{number}}").Render(assigns));
+            Assert.AreEqual("1", t.ParseInternal("{{number}}").Render(assigns));
+            Assert.AreEqual("1", t.Render(assigns));
+        }
 
-		[Test]
-		public void TestErbLikeTrimmingTrailingWhitespace()
-		{
-			Template t = Template.Parse("{% if true -%}\nhi tobi\n{% endif %}");
-			Assert.AreEqual("hi tobi\n", t.Render());
-		}
+        [Test]
+        public void TestErbLikeTrimmingLeadingWhitespace()
+        {
+            Template t = Template.Parse("foo\n\t  {%- if true %}hi tobi{% endif %}");
+            Assert.AreEqual("foo\nhi tobi", t.Render());
+        }
 
-		[Test]
-		public void TestErbLikeTrimmingLeadingAndTrailingWhitespace()
-		{
-			Template t = Template.Parse(@"<ul>
+        [Test]
+        public void TestErbLikeTrimmingTrailingWhitespace()
+        {
+            Template t = Template.Parse("{% if true -%}\nhi tobi\n{% endif %}");
+            Assert.AreEqual("hi tobi\n", t.Render());
+        }
+
+        [Test]
+        public void TestErbLikeTrimmingLeadingAndTrailingWhitespace()
+        {
+            Template t = Template.Parse(@"<ul>
 {% for item in tasks -%}
     {%- if true -%}
 	<li>{{ item }}</li>
     {%- endif -%}
 {% endfor -%}
 </ul>");
-			Assert.AreEqual(@"<ul>
+            Assert.AreEqual(@"<ul>
 	<li>foo</li>
 	<li>bar</li>
 	<li>baz</li>
-</ul>", t.Render(Hash.FromAnonymousObject(new { tasks = new [] { "foo", "bar", "baz" } })));
-		}
-
-		[Test]
-		public void TestRenderToStreamWriter()
-		{
-			Template template = Template.Parse("{{test}}");
-
-			using (TextWriter writer = new StringWriter())
-			{
-				template.Render(writer, new RenderParameters { LocalVariables = Hash.FromAnonymousObject(new { test = "worked" }) });
-
-				Assert.AreEqual("worked", writer.ToString());
-			}
-		}
-
-		[Test]
-		public void TestRenderToStream()
-		{
-			Template template = Template.Parse("{{test}}");
-
-			var output = new MemoryStream();
-			template.Render(output, new RenderParameters { LocalVariables = Hash.FromAnonymousObject(new { test = "worked" }) });
-
-			output.Seek(0, SeekOrigin.Begin);
-
-			using (TextReader reader = new StreamReader(output))
-			{
-				Assert.AreEqual("worked", reader.ReadToEnd());
-			}
-		}
-
-		public class MySimpleType
-		{
-			public string Name { get; set; }
-
-			public override string ToString()
-			{
-				return "Foo";
-			}
-		}
+</ul>", t.Render(Hash.FromAnonymousObject(new { tasks = new[] { "foo", "bar", "baz" } })));
+        }
 
         [Test]
-		public void TestRegisterSimpleType()
-		{
-            var config = new TemplateConfiguration();
-            config.RegisterSafeType(typeof (MySimpleType), new[] {"Name"});
-			Template template = Template.Parse("{{context.Name}}", config);
+        public void TestRenderToStreamWriter()
+        {
+            Template template = Template.Parse("{{test}}");
 
-			var output = template.Render(Hash.FromAnonymousObject(new { context = new MySimpleType() { Name = "worked" } }));
+            using (TextWriter writer = new StringWriter())
+            {
+                template.Render(writer, new RenderParameters { LocalVariables = Hash.FromAnonymousObject(new { test = "worked" }) });
 
-			Assert.AreEqual("worked", output);
-		}
+                Assert.AreEqual("worked", writer.ToString());
+            }
+        }
 
-		[Test]
-		public void TestRegisterSimpleTypeToString()
-		{
-		    var config = new TemplateConfiguration();
-		    config.RegisterSafeType(typeof (MySimpleType), new[] {"ToString"});
-		    Template template = Template.Parse("{{context}}", config);
+        [Test]
+        public void TestRenderToStream()
+        {
+            Template template = Template.Parse("{{test}}");
 
-			var output = template.Render(Hash.FromAnonymousObject(new { context = new MySimpleType() }));
+            var output = new MemoryStream();
+            template.Render(output, new RenderParameters { LocalVariables = Hash.FromAnonymousObject(new { test = "worked" }) });
 
-			// Doesn't automatically call ToString().
-			Assert.AreEqual(string.Empty, output);
-		}
+            output.Seek(0, SeekOrigin.Begin);
+
+            using (TextReader reader = new StreamReader(output))
+            {
+                Assert.AreEqual("worked", reader.ReadToEnd());
+            }
+        }
+
+        public class MySimpleType
+        {
+            public string Name { get; set; }
+
+            public override string ToString()
+            {
+                return "Foo";
+            }
+        }
+
+        [Test]
+        public void TestRegisterSimpleType()
+        {
+            var config = TemplateConfiguration.CreateStandartConfiguration();
+            config.RegisterSafeType(typeof(MySimpleType), new[] { "Name" });
+            Template template = Template.Parse("{{context.Name}}", config);
+
+            var output = template.Render(Hash.FromAnonymousObject(new { context = new MySimpleType() { Name = "worked" } }));
+
+            Assert.AreEqual("worked", output);
+        }
+
+        [Test]
+        public void TestRegisterSimpleTypeToString()
+        {
+            var config = TemplateConfiguration.CreateStandartConfiguration();
+            config.RegisterSafeType(typeof(MySimpleType), new[] { "ToString" });
+            Template template = Template.Parse("{{context}}", config);
+
+            var output = template.Render(Hash.FromAnonymousObject(new { context = new MySimpleType() }));
+
+            // Doesn't automatically call ToString().
+            Assert.AreEqual(string.Empty, output);
+        }
 
         [Test]
         public void TestRegisterSimpleTypeToStringWhenTransformReturnsComplexType()
         {
-            var config = new TemplateConfiguration().RegisterSafeType(typeof (MySimpleType), o => o);
+            var config = TemplateConfiguration.CreateStandartConfiguration().RegisterSafeType(typeof(MySimpleType), o => o);
 
             Template template = Template.Parse("{{context}}", config);
 
@@ -206,23 +208,23 @@ namespace DotLiquid.Tests
             Assert.AreEqual("Foo", output);
         }
 
-		[Test]
-		public void TestRegisterSimpleTypeTransformer()
-		{
-		    var config = new TemplateConfiguration().RegisterSafeType(typeof (MySimpleType), o => o.ToString());
-			Template template = Template.Parse("{{context}}", config);
+        [Test]
+        public void TestRegisterSimpleTypeTransformer()
+        {
+            var config = TemplateConfiguration.CreateStandartConfiguration().RegisterSafeType(typeof(MySimpleType), o => o.ToString());
+            Template template = Template.Parse("{{context}}", config);
 
-			var output = template.Render(Hash.FromAnonymousObject(new { context = new MySimpleType() }));
+            var output = template.Render(Hash.FromAnonymousObject(new { context = new MySimpleType() }));
 
-			// Uses safe type transformer.
-			Assert.AreEqual("Foo", output);
-		}
+            // Uses safe type transformer.
+            Assert.AreEqual("Foo", output);
+        }
 
         [Test]
         public void TestRegisterRegisterSafeTypeWithValueTypeTransformer()
         {
-            var config = new TemplateConfiguration()
-                .RegisterSafeType(typeof (MySimpleType), new[] {"Name"}, m => m.ToString());
+            var config = TemplateConfiguration.CreateStandartConfiguration()
+                .RegisterSafeType(typeof(MySimpleType), new[] { "Name" }, m => m.ToString());
             Template template = Template.Parse("{{context}}{{context.Name}}", config);
 
             var output = template.Render(Hash.FromAnonymousObject(new { context = new MySimpleType() { Name = "Bar" } }));
@@ -246,8 +248,8 @@ namespace DotLiquid.Tests
         [Test]
         public void TestNestedRegisterRegisterSafeTypeWithValueTypeTransformer()
         {
-            var config = new TemplateConfiguration()
-                .RegisterSafeType(typeof (NestedMySimpleType), new[] {"Name", "Nested"}, m => m.ToString());
+            var config = TemplateConfiguration.CreateStandartConfiguration()
+                .RegisterSafeType(typeof(NestedMySimpleType), new[] { "Name", "Nested" }, m => m.ToString());
 
             Template template = Template.Parse("{{context}}{{context.Name}} {{context.Nested}}{{context.Nested.Name}}", config);
 
@@ -262,7 +264,7 @@ namespace DotLiquid.Tests
         [Test]
         public void TestOverrideDefaultBoolRenderingWithValueTypeTransformer()
         {
-            var config = new TemplateConfiguration().RegisterValueTypeTransformer(typeof(bool), m => (bool)m ? "Win" : "Fail");
+            var config = TemplateConfiguration.CreateStandartConfiguration().RegisterValueTypeTransformer(typeof(bool), m => (bool)m ? "Win" : "Fail");
             Template template = Template.Parse("{{var1}} {{var2}}", config);
 
             var output = template.Render(Hash.FromAnonymousObject(new { var1 = true, var2 = false }));
@@ -270,37 +272,37 @@ namespace DotLiquid.Tests
             Assert.AreEqual("Win Fail", output);
         }
 
-		[Test]
-		public void TestHtmlEncodingFilter()
-		{
+        [Test]
+        public void TestHtmlEncodingFilter()
+        {
 #if NET35
-			var config = new TemplateConfiguration().RegisterValueTypeTransformer(typeof(string), m => HttpUtility.HtmlEncode((string) m));
+			var config = TemplateConfiguration.CreateStandartConfiguration().RegisterValueTypeTransformer(typeof(string), m => HttpUtility.HtmlEncode((string) m));
 #else
-            var config = new TemplateConfiguration().RegisterValueTypeTransformer(typeof(string), m => WebUtility.HtmlEncode((string)m));
+            var config = TemplateConfiguration.CreateStandartConfiguration().RegisterValueTypeTransformer(typeof(string), m => WebUtility.HtmlEncode((string)m));
 #endif
-			Template template = Template.Parse("{{var1}} {{var2}}", config);
+            Template template = Template.Parse("{{var1}} {{var2}}", config);
 
-			var output = template.Render(Hash.FromAnonymousObject(new { var1 = "<html>", var2 = "Some <b>bold</b> text." }));
+            var output = template.Render(Hash.FromAnonymousObject(new { var1 = "<html>", var2 = "Some <b>bold</b> text." }));
 
-			Assert.AreEqual("&lt;html&gt; Some &lt;b&gt;bold&lt;/b&gt; text.", output);
-		}
+            Assert.AreEqual("&lt;html&gt; Some &lt;b&gt;bold&lt;/b&gt; text.", output);
+        }
 
-		public interface IMySimpleInterface2
-		{
-			string Name { get; }
-		}
+        public interface IMySimpleInterface2
+        {
+            string Name { get; }
+        }
 
-		public class MySimpleType2 : IMySimpleInterface2
-		{
-			public string Name { get; set; }
-		}
+        public class MySimpleType2 : IMySimpleInterface2
+        {
+            public string Name { get; set; }
+        }
 
         [Test]
         public void TestRegisterSimpleTypeTransformIntoAnonymousType()
         {
             // specify a transform function
-            var config = new TemplateConfiguration().RegisterSafeType(typeof (MySimpleType2),
-                x => new {Name = ((MySimpleType2) x).Name});
+            var config = TemplateConfiguration.CreateStandartConfiguration().RegisterSafeType(typeof(MySimpleType2),
+                x => new { Name = ((MySimpleType2)x).Name });
             Template template = Template.Parse("{{context.Name}}", config);
 
             var output = template.Render(Hash.FromAnonymousObject(new { context = new MySimpleType2 { Name = "worked" } }));
@@ -308,35 +310,35 @@ namespace DotLiquid.Tests
             Assert.AreEqual("worked", output);
         }
 
-		[Test]
-		public void TestRegisterInterfaceTransformIntoAnonymousType()
-		{
-			// specify a transform function
-		    var config = new TemplateConfiguration().RegisterSafeType(typeof (IMySimpleInterface2),
-		        x => new {Name = ((IMySimpleInterface2) x).Name});
-			Template template = Template.Parse("{{context.Name}}", config);
+        [Test]
+        public void TestRegisterInterfaceTransformIntoAnonymousType()
+        {
+            // specify a transform function
+            var config = TemplateConfiguration.CreateStandartConfiguration().RegisterSafeType(typeof(IMySimpleInterface2),
+                x => new { Name = ((IMySimpleInterface2)x).Name });
+            Template template = Template.Parse("{{context.Name}}", config);
 
-			var output = template.Render(Hash.FromAnonymousObject(new { context = new MySimpleType2 { Name = "worked" } }));
+            var output = template.Render(Hash.FromAnonymousObject(new { context = new MySimpleType2 { Name = "worked" } }));
 
-			Assert.AreEqual("worked", output);
-		}
+            Assert.AreEqual("worked", output);
+        }
 
-		public class MyUnsafeType2
-		{
-			public string Name { get; set; }
-		}
+        public class MyUnsafeType2
+        {
+            public string Name { get; set; }
+        }
 
-		[Test]
-		public void TestRegisterSimpleTypeTransformIntoUnsafeType()
-		{
-			// specify a transform function
-		    var config = new TemplateConfiguration().RegisterSafeType(typeof (MySimpleType2),
-		        x => new MyUnsafeType2 {Name = ((MySimpleType2) x).Name});
-			Template template = Template.Parse("{{context.Name}}", config);
+        [Test]
+        public void TestRegisterSimpleTypeTransformIntoUnsafeType()
+        {
+            // specify a transform function
+            var config = TemplateConfiguration.CreateStandartConfiguration().RegisterSafeType(typeof(MySimpleType2),
+                x => new MyUnsafeType2 { Name = ((MySimpleType2)x).Name });
+            Template template = Template.Parse("{{context.Name}}", config);
 
-			var output = template.Render(Hash.FromAnonymousObject(new { context = new MySimpleType2 { Name = "worked" } }));
+            var output = template.Render(Hash.FromAnonymousObject(new { context = new MySimpleType2 { Name = "worked" } }));
 
-			Assert.AreEqual("", output);
-		}
-	}
+            Assert.AreEqual("", output);
+        }
+    }
 }

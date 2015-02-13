@@ -11,7 +11,11 @@ namespace DotLiquid
 
         public static TemplateConfiguration Global
         {
-            get { return _global ?? (_global = new TemplateConfiguration()); }
+            get
+            {
+                return _global
+                       ?? (_global = CreateStandartConfiguration());
+            }
         }
 
         private readonly Dictionary<string, Type> _tags = new Dictionary<string, Type>();
@@ -26,11 +30,25 @@ namespace DotLiquid
 
         public IFileSystem FileSystem { get; set; }
 
-        public TemplateConfiguration()
+        protected TemplateConfiguration()
         {
-            FileSystem = new BlankFileSystem();
-            RegisterDefaultTags();
-            RegisterFilter(typeof(StandardFilters));
+            this.FileSystem = new BlankFileSystem();
+        }
+
+        public static TemplateConfiguration CreateStandartConfiguration()
+        {
+            return new TemplateConfiguration().RegisterStandardTags().RegisterStandardFiltes();
+        }
+
+        public static TemplateConfiguration CreateEmptyConfiguration()
+        {
+            return new TemplateConfiguration().RegisterStandardTags().RegisterStandardFiltes();
+        }
+
+        public TemplateConfiguration SetFileSystem(IFileSystem fileSystem)
+        {
+            this.FileSystem = fileSystem;
+            return this;
         }
 
         public TemplateConfiguration RegisterTag<T>(string name)
@@ -132,7 +150,7 @@ namespace DotLiquid
             return null;
         }
 
-        private void RegisterDefaultTags()
+        public TemplateConfiguration RegisterStandardTags()
         {
             RegisterTag<Tags.Assign>("assign");
             RegisterTag<Tags.Block>("block");
@@ -152,6 +170,13 @@ namespace DotLiquid
             RegisterTag<Tags.Raw>("raw");
 
             RegisterTag<Tags.Html.TableRow>("tablerow");
+            return this;
+        }
+
+        public TemplateConfiguration RegisterStandardFiltes()
+        {
+            this.RegisterFilter(typeof(StandardFilters));
+            return this;
         }
     }
 }
